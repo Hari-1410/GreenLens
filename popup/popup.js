@@ -1,4 +1,7 @@
-// popup.js – GreenCart v4
+// popup.js – GreenCart v5
+// KEY FIX: popup.js is a real browser window — it CAN send cookies cross-origin.
+// After confirming GreenLens login, it saves userId to chrome.storage.local
+// so content.js (service worker context) can read it without needing cookies.
 
 let allProducts = [];
 let currentSort = "eco-first";
@@ -38,14 +41,15 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(url, { ...options, signal: controller.signal });
-    return res;
+    return await fetch(url, { ...options, signal: controller.signal });
   } finally {
     clearTimeout(timer);
   }
 }
 
 // ─── GREENLENS LOGIN STATUS ───────────────────────────────────────────────────
+// THE KEY FIX: popup is a real browser window — cookies ARE sent here.
+// After confirming login, we save userId to chrome.storage so content.js can use it.
 async function checkGreenLensLogin() {
   const statusEl = document.getElementById("glLoginStatus");
   if (!statusEl) return;
@@ -53,13 +57,22 @@ async function checkGreenLensLogin() {
   try {
     const res = await fetchWithTimeout(
       `${GREENLENS_BASE}/api/user`,
-      { credentials: "include" },
+      { credentials: "include" }, // ✅ Works here — popup is a real browser context
       5000
     );
 
     if (res.ok) {
       const user = await res.json();
       greenLensUser = user;
+
+      // ── CRITICAL FIX: save userId to storage so content.js can read it ──
+      // API returns "id" not "userId"
+      const userId = user.userId || user.id;
+      if (userId) {
+        await chrome.storage.local.set({ gcUserId: userId });
+        console.log("[GreenCart Popup] ✅ userId saved to storage:", userId);
+      }
+
       statusEl.innerHTML = `
         <div class="gl-logged-in">
           <span class="gl-status-dot connected"></span>
@@ -71,6 +84,10 @@ async function checkGreenLensLogin() {
       `;
     } else {
       greenLensUser = null;
+      // Clear stale userId so content.js shows "sign in" toast
+      await chrome.storage.local.remove(["gcUserId"]);
+      console.log("[GreenCart Popup] Not logged in — cleared gcUserId");
+
       statusEl.innerHTML = `
         <div class="gl-logged-out">
           <span class="gl-status-dot disconnected"></span>
@@ -101,7 +118,6 @@ async function checkGreenLensLogin() {
 }
 
 // ─── CART PENDING TOKENS BANNER ───────────────────────────────────────────────
-// Shows a banner in the popup if the user has eco items in their Amazon cart
 function loadCartPendingTokens() {
   chrome.storage.local.get(
     ["gcCartPendingTokens", "gcCartEcoItems", "gcCartRupees"],
@@ -336,4 +352,4 @@ function formatPrice(price) {
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 loadProducts();
 loadCartPendingTokens();
-checkGreenLensLogin();
+checkGreenLensLogin(); // ← This now also saves userId to chrome.storage
