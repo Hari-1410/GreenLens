@@ -1,0 +1,203 @@
+/* ============================================================
+   GreenLens Credit — styles.css
+   Injected into Amazon / Flipkart pages
+   ============================================================ */
+
+#greenlens-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2147483647;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  animation: gl-slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes gl-slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+/* ── Main banner bar ── */
+.gl-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
+  padding: 12px 20px;
+  box-shadow: 0 4px 20px rgba(6, 78, 59, 0.4);
+  border-bottom: 2px solid #10b981;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ── Warning variant (greenwashing) ── */
+.gl-banner.gl-warn {
+  background: linear-gradient(135deg, #7c2d12 0%, #9a3412 50%, #b45309 100%);
+  border-bottom-color: #f59e0b;
+  box-shadow: 0 4px 20px rgba(124, 45, 18, 0.4);
+}
+
+/* ── Left section ── */
+.gl-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.gl-leaf {
+  font-size: 28px;
+  flex-shrink: 0;
+  animation: gl-pulse 2s ease-in-out infinite;
+}
+
+@keyframes gl-pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.12); }
+}
+
+.gl-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gl-title {
+  color: #d1fae5;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.gl-sub {
+  color: #ecfdf5;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.gl-sub strong {
+  color: #6ee7b7;
+  font-weight: 700;
+}
+
+.gl-co2 {
+  display: inline-block;
+  background: rgba(16, 185, 129, 0.25);
+  color: #6ee7b7;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ── Right section ── */
+.gl-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ── CTA Button ── */
+.gl-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #10b981;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.4);
+  white-space: nowrap;
+}
+
+.gl-btn:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.5);
+}
+
+.gl-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.gl-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+/* ── Credit badge on button ── */
+.gl-badge {
+  background: rgba(255,255,255,0.2);
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+/* ── Close button ── */
+.gl-close {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #d1fae5;
+  border-radius: 6px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.gl-close:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+/* ── Toast notification ── */
+.gl-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #15803d;
+  color: #fff;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  animation: gl-fadeIn 0.3s ease;
+  border-top: 1px solid rgba(255,255,255,0.15);
+}
+
+@keyframes gl-fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .gl-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 14px;
+  }
+
+  .gl-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .gl-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
