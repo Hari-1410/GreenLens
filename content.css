@@ -1,6 +1,6 @@
-/* content.css – Styles injected into Amazon pages */
+/* content.css – GreenCart v4 – injected into Amazon pages */
 
-/* ── Search Result Badge ── */
+/* ── Search Result Badge ─────────────────────────────────────────────────── */
 .gc-badge {
   position: absolute;
   top: 8px;
@@ -17,33 +17,39 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   box-shadow: 0 2px 8px rgba(26, 107, 58, 0.4);
   z-index: 9999;
-  letter-spacing: 0.02em;
   pointer-events: none;
+  white-space: nowrap;
   animation: gc-pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
-.gc-badge-icon {
-  font-size: 12px;
+.gc-badge-icon { font-size: 12px; }
+.gc-badge-label { font-weight: 700; }
+
+.gc-badge-sep {
+  opacity: 0.5;
+  font-size: 10px;
 }
 
-.gc-badge-label {
-  white-space: nowrap;
-}
-
-.gc-badge-cert {
+.gc-badge-tokens {
   background: rgba(255, 255, 255, 0.2);
   padding: 1px 5px;
-  border-radius: 10px;
-  font-size: 9px;
-  white-space: nowrap;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.gc-badge-rupees {
+  font-size: 10px;
+  font-weight: 700;
+  color: #a7f3c0;
 }
 
 @keyframes gc-pop-in {
-  0% { transform: scale(0.5); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+  0%   { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1);   opacity: 1; }
 }
 
-/* ── Product Detail Banner ── */
+/* ── Product Detail Banner ───────────────────────────────────────────────── */
 .gc-detail-banner {
   display: flex;
   align-items: center;
@@ -63,9 +69,7 @@
   gap: 10px;
 }
 
-.gc-banner-icon {
-  font-size: 26px;
-}
+.gc-banner-icon { font-size: 26px; }
 
 .gc-banner-title {
   font-size: 14px;
@@ -73,16 +77,36 @@
   color: #1a6b3a;
 }
 
-.gc-banner-reason {
-  font-size: 12px;
-  color: #4a7c5f;
-  margin-top: 2px;
+.gc-banner-certs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.gc-cert-chip {
+  background: rgba(45, 158, 95, 0.15);
+  border: 1px solid rgba(45, 158, 95, 0.3);
+  color: #1a6b3a;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* Right side: score + token preview */
+.gc-banner-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
 }
 
 .gc-banner-score {
   font-size: 28px;
   font-weight: 800;
   color: #1a6b3a;
+  line-height: 1;
 }
 
 .gc-banner-score span {
@@ -91,12 +115,146 @@
   color: #4a7c5f;
 }
 
-@keyframes gc-slide-in {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Token preview box on product page */
+.gc-token-preview {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, #0d5c2e, #1a8a47);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* ── GreenCart Sort Toolbar (injected on Amazon search page) ── */
+.gc-token-num {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.gc-token-label {
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+.gc-token-rupees {
+  font-size: 13px;
+  font-weight: 700;
+  color: #a7f3c0;
+  margin-left: 2px;
+}
+
+@keyframes gc-slide-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Cart Token Summary Banner ───────────────────────────────────────────── */
+.gc-cart-summary {
+  background: linear-gradient(135deg, #f0faf4, #e0f5ea);
+  border: 2px solid #2d9e5f;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  animation: gc-slide-in 0.4s ease forwards;
+}
+
+.gc-cart-summary-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.gc-cart-summary-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gc-cart-icon { font-size: 28px; }
+
+.gc-cart-summary-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gc-cart-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a6b3a;
+}
+
+.gc-cart-sub {
+  font-size: 11px;
+  color: #4a7c5f;
+}
+
+.gc-cart-summary-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.gc-cart-tokens {
+  font-size: 26px;
+  font-weight: 800;
+  color: #1a6b3a;
+  line-height: 1;
+}
+
+.gc-cart-tokens-label {
+  font-size: 10px;
+  color: #4a7c5f;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.gc-cart-rupees {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2d9e5f;
+  margin-top: 2px;
+}
+
+/* Breakdown rows (shown when multiple eco items) */
+.gc-cart-breakdown {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(45, 158, 95, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.gc-cart-breakdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.gc-cart-breakdown-name {
+  color: #4a7c5f;
+  flex: 1;
+  min-width: 0;
+}
+
+.gc-cart-breakdown-tokens {
+  font-weight: 700;
+  color: #1a6b3a;
+  background: rgba(45, 158, 95, 0.12);
+  padding: 1px 7px;
+  border-radius: 8px;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+/* ── GreenCart Sort Toolbar ──────────────────────────────────────────────── */
 .gc-sort-toolbar {
   width: 100%;
   background: linear-gradient(135deg, #f0faf4 0%, #e6f7ed 100%);
@@ -121,7 +279,6 @@
   font-weight: 700;
   color: #0d5c2e;
   white-space: nowrap;
-  letter-spacing: 0.01em;
 }
 
 .gc-sort-buttons {
@@ -144,16 +301,8 @@
   white-space: nowrap;
 }
 
-.gc-sort-btn:hover {
-  background: #e0f5ea;
-  border-color: #2d9e5f;
-}
-
-.gc-sort-btn.active {
-  background: #0d5c2e;
-  border-color: #0d5c2e;
-  color: #fff;
-}
+.gc-sort-btn:hover  { background: #e0f5ea; border-color: #2d9e5f; }
+.gc-sort-btn.active { background: #0d5c2e; border-color: #0d5c2e; color: #fff; }
 
 .gc-sort-status {
   margin-left: auto;
@@ -165,23 +314,4 @@
   border-radius: 20px;
   border: 1px solid #b8e8c8;
   white-space: nowrap;
-}
-
-/* ── Cert chips inside detail banner ── */
-.gc-banner-certs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 5px;
-}
-
-.gc-cert-chip {
-  background: rgba(255,255,255,0.25);
-  border: 1px solid rgba(255,255,255,0.4);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 10px;
-  letter-spacing: 0.02em;
 }

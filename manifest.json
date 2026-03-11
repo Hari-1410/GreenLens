@@ -11,7 +11,7 @@
     "*://*.amazon.co.jp/*",
     "*://*.amazon.de/*",
     "*://*.amazon.fr/*",
-    "http://localhost:3000/*"
+    "https://greenlens-platform.vercel.app/*"
   ],
   "background": {
     "service_worker": "background.js"
