@@ -103,6 +103,22 @@
     /* On-page sort hint banner */
     .page-sort-hint { background: linear-gradient(135deg, #0d5c2e, #1a8a47); color:#fff; border-radius:10px; padding:10px 13px; margin-bottom:10px; font-size:11px; line-height:1.5; }
     .page-sort-hint strong { display:block; font-size:12px; margin-bottom:3px; }
+
+    /* ADDED: GreenLens login status widget */
+    .gl-status-bar { margin: 0 12px 10px; background: var(--surface); border: 1.5px solid var(--green-border); border-radius: 10px; padding: 9px 11px; }
+    .gl-logged-in, .gl-logged-out { display: flex; align-items: center; gap: 9px; }
+    .gl-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .gl-status-dot.connected { background: #2fc76a; box-shadow: 0 0 6px rgba(47,199,106,0.6); }
+    .gl-status-dot.disconnected { background: #f87171; }
+    .gl-status-text { display: flex; flex-direction: column; gap: 1px; }
+    .gl-status-name { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+    .gl-status-sub { font-size: 10px; color: var(--text-muted); }
+    .gl-login-link { color: var(--green-mid); font-weight: 700; text-decoration: none; }
+    .gl-login-link:hover { text-decoration: underline; }
+    /* ADDED: Dashboard button */
+    .dashboard-btn { display:flex; align-items:center; justify-content:center; gap:7px; width:calc(100% - 24px); margin:0 12px 12px; padding:10px 16px; background:linear-gradient(135deg, #0d5c2e, #1a8a47); color:#fff; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:700; border:none; border-radius:10px; cursor:pointer; text-decoration:none; transition:opacity 0.2s; }
+    .dashboard-btn:hover { opacity:0.88; }
+    /* END ADDED */
   </style>
 </head>
 <body>
@@ -132,14 +148,24 @@
     <div class="tab" data-tab="about">ℹ️ About</div>
   </div>
 
+  <!-- ADDED: GreenLens login status bar (shown below tabs, above all panels) -->
+  <div class="gl-status-bar" id="glLoginStatus">
+    <div class="gl-logged-out">
+      <span class="gl-status-dot disconnected"></span>
+      <div class="gl-status-text">
+        <span class="gl-status-name">Checking GreenLens…</span>
+        <span class="gl-status-sub">Connecting to https://greenlens-platform.vercel.app/</span>
+      </div>
+    </div>
+  </div>
+  <!-- END ADDED -->
+
   <!-- PANEL: Products + Sort -->
   <div class="panel active" id="panel-sort">
-
     <div class="page-sort-hint">
       <strong>📄 On-page sorting is live!</strong>
       A GreenCart toolbar appears on the Amazon search page — eco products automatically float to the top.
     </div>
-
     <div class="controls-row">
       <div class="sort-group">
         <button class="sort-btn active" data-sort="eco-first">🌿 Eco First</button>
@@ -152,7 +178,6 @@
         Eco only
       </label>
     </div>
-
     <div id="productList">
       <div class="loading"><div class="spinner"></div>Scanning page for eco products…</div>
     </div>
@@ -193,6 +218,16 @@
       </div>
     </div>
   </div>
+
+  <!-- ADDED: Open Dashboard button -->
+  <a class="dashboard-btn" href="https://greenlens-platform.vercel.app/dashboard" target="_blank" rel="noopener noreferrer">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+    </svg>
+    Open Dashboard
+  </a>
+  <!-- END ADDED -->
 
   <script src="popup.js"></script>
 </body>

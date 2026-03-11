@@ -5,14 +5,10 @@ let pageProducts = [];
 let currentPageSort = "eco-first";
 
 // ─── ALL AMAZON CLIMATE PLEDGE FRIENDLY CERTIFICATIONS ───────────────────────
-// Source: amazon.com/climatepleadgefriendly & amazon.in CPF program
 const CPF_CERTIFICATIONS = {
-  // Amazon's own labels
   "climate-pledge-friendly":        { label: "Climate Pledge Friendly", score: 90 },
   "compact-by-design":              { label: "Compact by Design",        score: 80 },
   "amazon-renewed":                 { label: "Amazon Renewed",           score: 75 },
-
-  // Third-party certs Amazon recognises
   "usda-organic":                   { label: "USDA Organic",             score: 88 },
   "usda-biobased":                  { label: "USDA Certified Biobased",  score: 82 },
   "rainforest-alliance":            { label: "Rainforest Alliance",      score: 87 },
@@ -43,26 +39,18 @@ const CPF_CERTIFICATIONS = {
   "compostable":                    { label: "Certified Compostable",    score: 84 },
 };
 
-// DOM selectors Amazon uses to render CPF badges (search + detail pages)
 const CPF_DOM_SELECTORS = [
-  // Main CPF badge container on search cards
   '[data-component-type="s-climate-pledge-badge"]',
   '.s-climate-pledge-badge',
   '[class*="climate-pledge"]',
   '[class*="climatePledge"]',
-
-  // CPF on product detail pages
   '#climatePledgeFriendlyBadge',
   '[id*="climate-pledge"]',
   '[id*="climatePledge"]',
   '.cpf-badge',
-
-  // Sustainability label section on detail pages
   '#sustainabilityFeatureBullets',
   '[data-feature-name="sustainabilityInitiatives"]',
   '[data-feature-name="cpfBadge"]',
-
-  // Alt class Amazon uses for the leaf icon area
   '.a-icon-climate-pledge-friendly',
   '[class*="sustainability"]',
   'img[src*="climate-pledge"]',
@@ -71,7 +59,6 @@ const CPF_DOM_SELECTORS = [
   'img[alt*="climate pledge"]',
 ];
 
-// Text patterns Amazon uses in CPF labels
 const CPF_TEXT_PATTERNS = [
   /climate\s*pledge\s*friendly/i,
   /compact\s*by\s*design/i,
@@ -92,68 +79,42 @@ const CPF_TEXT_PATTERNS = [
   /1%?\s*for\s*the\s*planet/i,
 ];
 
-// ─── DETECT CPF FROM A PRODUCT CARD / CONTAINER ──────────────────────────────
 function detectCPFFromDOM(container) {
   const found = [];
-
-  // 1. Check for Amazon's CPF badge elements
   for (const selector of CPF_DOM_SELECTORS) {
     const el = container.querySelector(selector);
     if (el) {
-      // Try to extract which specific cert it is from alt text, aria-label, or text
       const text = (el.alt || el.getAttribute("aria-label") || el.textContent || "").trim();
       const certKey = matchCertText(text);
-      if (certKey) {
-        found.push(certKey);
-      } else {
-        // Generic CPF badge found even if we can't identify specific cert
-        found.push("climate-pledge-friendly");
-      }
+      if (certKey) { found.push(certKey); } else { found.push("climate-pledge-friendly"); }
     }
   }
-
-  // 2. Scan all img alt texts for cert names
   container.querySelectorAll("img[alt]").forEach(img => {
-    const alt = img.alt || "";
-    const certKey = matchCertText(alt);
+    const certKey = matchCertText(img.alt || "");
     if (certKey && !found.includes(certKey)) found.push(certKey);
   });
-
-  // 3. Scan aria-labels
   container.querySelectorAll("[aria-label]").forEach(el => {
-    const label = el.getAttribute("aria-label") || "";
-    const certKey = matchCertText(label);
+    const certKey = matchCertText(el.getAttribute("aria-label") || "");
     if (certKey && !found.includes(certKey)) found.push(certKey);
   });
-
-  // 4. Check text content of small label/span elements (CPF cert names)
   container.querySelectorAll("span, .a-badge-text, .a-badge-label").forEach(el => {
-    // Only look at short text nodes (cert names are short)
     const text = (el.textContent || "").trim();
     if (text.length > 0 && text.length < 80) {
       const certKey = matchCertText(text);
       if (certKey && !found.includes(certKey)) found.push(certKey);
     }
   });
-
-  return [...new Set(found)]; // dedupe
+  return [...new Set(found)];
 }
 
 function matchCertText(text) {
   if (!text) return null;
   const lower = text.toLowerCase();
-
-  // Direct key match
   for (const key of Object.keys(CPF_CERTIFICATIONS)) {
-    if (lower.includes(key.replace(/-/g, " ")) || lower.includes(key)) {
-      return key;
-    }
+    if (lower.includes(key.replace(/-/g, " ")) || lower.includes(key)) return key;
   }
-
-  // Pattern match
   for (const pattern of CPF_TEXT_PATTERNS) {
     if (pattern.test(text)) {
-      // Map back to a key
       if (/climate\s*pledge/i.test(text)) return "climate-pledge-friendly";
       if (/compact\s*by\s*design/i.test(text)) return "compact-by-design";
       if (/carbon\s*neutral/i.test(text)) return "carbon-neutral";
@@ -173,27 +134,35 @@ function matchCertText(text) {
       if (/1%|one percent/i.test(text)) return "1-percent-for-the-planet";
     }
   }
-
   return null;
 }
 
-// Calculate eco score from certs found
 function calcScore(certKeys) {
   if (certKeys.length === 0) return 0;
   const scores = certKeys.map(k => CPF_CERTIFICATIONS[k]?.score || 75);
   const max = Math.max(...scores);
-  const bonus = Math.min(10, (certKeys.length - 1) * 3); // multi-cert bonus
+  const bonus = Math.min(10, (certKeys.length - 1) * 3);
   return Math.min(100, max + bonus);
 }
 
-// ─── PAGE TYPE ────────────────────────────────────────────────────────────────
 function getPageType() {
   if (document.querySelector('[data-component-type="s-search-result"]')) return "search";
   if (document.querySelector("#dp") || document.querySelector("#ppd")) return "product";
+  // ── ADDED: order confirmation detection ──
+  if (
+    window.location.href.includes("/orderconfirm") ||
+    window.location.href.includes("/order-confirm") ||
+    window.location.href.includes("thankyou") ||
+    window.location.href.includes("/gp/buy/thankyou") ||
+    window.location.href.includes("/gp/checkout/confirm") ||
+    document.querySelector("#thankyou-page") ||
+    document.querySelector(".a-fixed-right-grid #orderDetails") ||
+    document.title.toLowerCase().includes("order confirmed") ||
+    document.title.toLowerCase().includes("thank you")
+  ) return "order";
   return "unknown";
 }
 
-// ─── PRICE PARSER ─────────────────────────────────────────────────────────────
 function parsePrice(el) {
   if (!el) return null;
   const text = el.innerText || el.textContent || "";
@@ -202,14 +171,11 @@ function parsePrice(el) {
   return match ? parseFloat(match[0]) : null;
 }
 
-// ─── BADGE INJECTION ──────────────────────────────────────────────────────────
 function injectBadge(container, score, certKeys) {
   if (!container || container.querySelector(".gc-badge")) return;
-
   const primaryCert = certKeys.length > 0
     ? (CPF_CERTIFICATIONS[certKeys[0]]?.label || certKeys[0])
     : "Climate Pledge Friendly";
-
   const badge = document.createElement("div");
   badge.className = "gc-badge";
   badge.title = certKeys.map(k => CPF_CERTIFICATIONS[k]?.label || k).join(", ");
@@ -218,18 +184,15 @@ function injectBadge(container, score, certKeys) {
     <span class="gc-badge-label">Eco ${score}%</span>
     <span class="gc-badge-cert">${primaryCert}</span>
   `;
-
   const imageWrapper =
     container.querySelector(".s-image-container") ||
     container.querySelector(".imgTagWrapper") ||
     container.querySelector("img")?.closest("div") ||
     container;
-
   imageWrapper.style.position = "relative";
   imageWrapper.appendChild(badge);
 }
 
-// ─── SORT TOOLBAR ─────────────────────────────────────────────────────────────
 function injectSortToolbar() {
   if (document.querySelector(".gc-sort-toolbar")) return;
   const toolbar = document.createElement("div");
@@ -263,20 +226,17 @@ function injectSortToolbar() {
   });
 }
 
-// ─── SORT CARDS ON PAGE ───────────────────────────────────────────────────────
 function sortCardsOnPage(sortType) {
   const allCards = Array.from(
     document.querySelectorAll('[data-component-type="s-search-result"], .s-result-item[data-asin]')
   );
   if (allCards.length === 0) return;
-
   const dataMap = new Map(pageProducts.map(p => [p.asin, p]));
   allCards.forEach((card, i) => {
     if (!card.getAttribute("data-gc-original-order")) {
       card.setAttribute("data-gc-original-order", i);
     }
   });
-
   let sorted;
   if (sortType === "original") {
     sorted = allCards.slice().sort((a, b) =>
@@ -307,73 +267,55 @@ function sortCardsOnPage(sortType) {
       return (bD?.price || 0) - (aD?.price || 0);
     });
   }
-
   sorted.forEach(card => card.parentElement?.appendChild(card));
 }
 
-// ─── STORAGE ──────────────────────────────────────────────────────────────────
 function saveProductsToStorage(products) {
   chrome.storage.local.set({ gcPageProducts: products, gcTimestamp: Date.now() });
 }
 
-// ─── PROCESS SEARCH RESULTS ───────────────────────────────────────────────────
 function processSearchResults() {
   injectSortToolbar();
-
   const cards = document.querySelectorAll(
     '[data-component-type="s-search-result"], .s-result-item[data-asin]'
   );
-
   let newCount = 0;
-
   for (const card of cards) {
     const asin = card.getAttribute("data-asin");
     if (!asin || processedAsins.has(asin)) continue;
     processedAsins.add(asin);
     newCount++;
-
-    // ── Core data extraction ──
     const titleEl =
       card.querySelector("h2 .a-text-normal") ||
       card.querySelector("h2 span") ||
       card.querySelector(".a-size-medium.a-color-base.a-text-normal") ||
       card.querySelector(".a-size-base-plus") ||
       card.querySelector("h2");
-
     const priceEl =
       card.querySelector(".a-price .a-offscreen") ||
       card.querySelector(".a-price-whole") ||
       card.querySelector(".a-price");
-
     const imageEl = card.querySelector(".s-image, img.s-image");
     const linkEl  = card.querySelector("a.a-link-normal[href*='/dp/']") || card.querySelector("h2 a");
-
     const productName = titleEl?.innerText?.trim() || titleEl?.textContent?.trim() || "";
     const price       = parsePrice(priceEl);
     if (!productName || productName.length < 3) continue;
-
-    // ── CPF Detection: read Amazon's own DOM ──
-    const certKeys     = detectCPFFromDOM(card);
+    const certKeys      = detectCPFFromDOM(card);
     const isSustainable = certKeys.length > 0;
-    const score        = calcScore(certKeys);
-    const certLabels   = certKeys.map(k => CPF_CERTIFICATIONS[k]?.label || k);
-
-    const productData = {
+    const score         = calcScore(certKeys);
+    const certLabels    = certKeys.map(k => CPF_CERTIFICATIONS[k]?.label || k);
+    const productData   = {
       asin, name: productName, price, score, isSustainable,
-      certifications: certLabels,
-      certKeys,
+      certifications: certLabels, certKeys,
       image: imageEl?.src || "",
       url: linkEl?.href || `https://amazon.in/dp/${asin}`
     };
-
     pageProducts.push(productData);
-
     if (isSustainable) {
       injectBadge(card, score, certKeys);
       card.setAttribute("data-gc-sustainable", "true");
     }
   }
-
   if (newCount > 0 || pageProducts.length > 0) {
     saveProductsToStorage(pageProducts);
     const ecoCount = pageProducts.filter(p => p.isSustainable).length;
@@ -383,44 +325,34 @@ function processSearchResults() {
   }
 }
 
-// ─── PROCESS PRODUCT DETAIL PAGE ─────────────────────────────────────────────
 function processProductPage() {
   const asin =
     document.querySelector("#ASIN")?.value ||
     window.location.pathname.match(/\/dp\/([A-Z0-9]+)/i)?.[1];
-
   const titleEl = document.querySelector("#productTitle, #title span");
   const priceEl =
     document.querySelector(".a-price .a-offscreen") ||
     document.querySelector("#priceblock_ourprice") ||
     document.querySelector("#priceblock_dealprice") ||
     document.querySelector(".a-price-whole");
-
   const productName = titleEl?.innerText?.trim() || "";
   const price       = parsePrice(priceEl);
   if (!productName) return;
-
-  // Scan the whole page for CPF badges (detail pages show them in multiple places)
   const scanRoot = document.querySelector("#ppd, #dp, body");
   const certKeys = detectCPFFromDOM(scanRoot || document.body);
   const isSustainable = certKeys.length > 0;
   const score = calcScore(certKeys);
   const certLabels = certKeys.map(k => CPF_CERTIFICATIONS[k]?.label || k);
-
   saveProductsToStorage([{
     asin, name: productName, price, score, isSustainable,
     certifications: certLabels, certKeys, url: window.location.href
   }]);
-
   if (isSustainable) {
-    // Badge on image
     const imageContainer = document.querySelector("#imgTagWrapperId, #imageBlock, #img-canvas");
     if (imageContainer) {
       imageContainer.style.position = "relative";
       injectBadge(imageContainer, score, certKeys);
     }
-
-    // Info banner below title
     const titleContainer = document.querySelector("#titleSection, #title");
     if (titleContainer && !document.querySelector(".gc-detail-banner")) {
       const banner = document.createElement("div");
@@ -440,6 +372,190 @@ function processProductPage() {
   }
 }
 
+// ─── ADDED: ORDER CONFIRMATION PAGE HANDLER ──────────────────────────────────
+
+async function getGreenLensUserId() {
+  // Fetch session from the GreenLens platform running at localhost:3000
+  try {
+    const res = await fetch("https://greenlens-platform.vercel.app/api/user", {
+      credentials: "include",
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.id || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function extractOrderProducts() {
+  const products = [];
+
+  // Amazon order confirmation page selectors
+  const itemSelectors = [
+    ".a-fixed-right-grid-inner",
+    "[data-component-type='s-product-image']",
+    ".shipment .a-row",
+    "#orderDetails .a-row",
+    ".order-info",
+    "[class*='item-row']",
+    ".a-box-inner .a-row",
+  ];
+
+  // Try to find product rows on the confirmation page
+  const rows = document.querySelectorAll(
+    ".a-fixed-right-grid, .shipment-info-container .a-box, #orderDetails .a-box"
+  );
+
+  rows.forEach(row => {
+    const nameEl =
+      row.querySelector(".a-truncate-full, .a-text-bold, a[href*='/dp/']") ||
+      row.querySelector("span.a-text-bold") ||
+      row.querySelector("a[href*='dp']");
+
+    const priceEl =
+      row.querySelector(".a-price .a-offscreen") ||
+      row.querySelector(".a-price-whole") ||
+      row.querySelector("[class*='price']");
+
+    const asinMatch = row.innerHTML?.match(/\/dp\/([A-Z0-9]{10})/);
+    const asin = asinMatch?.[1];
+
+    const name = nameEl?.innerText?.trim() || nameEl?.textContent?.trim();
+    const price = parsePrice(priceEl) || 0;
+
+    if (name && name.length > 3) {
+      // Check sustainability of this product
+      const certKeys = detectCPFFromDOM(row);
+      const score = certKeys.length > 0 ? calcScore(certKeys) : 0;
+
+      // Only report if eco product OR save all purchases
+      products.push({ asin, name, price, score, certKeys });
+    }
+  });
+
+  // Fallback: grab all product links on the page
+  if (products.length === 0) {
+    document.querySelectorAll("a[href*='/dp/']").forEach(link => {
+      const asinMatch = link.href.match(/\/dp\/([A-Z0-9]{10})/);
+      const asin = asinMatch?.[1];
+      const name = link.innerText?.trim() || link.textContent?.trim();
+      if (asin && name && name.length > 3 && !products.find(p => p.asin === asin)) {
+        const row = link.closest("div") || document.body;
+        const certKeys = detectCPFFromDOM(row);
+        const score = certKeys.length > 0 ? calcScore(certKeys) : 0;
+        products.push({ asin, name, price: 0, score, certKeys });
+      }
+    });
+  }
+
+  return products;
+}
+
+async function processOrderPage() {
+  // Prevent duplicate processing
+  const alreadyProcessed = await new Promise(resolve => {
+    chrome.storage.local.get(["gcOrderProcessed"], r => {
+      resolve(r.gcOrderProcessed === window.location.href);
+    });
+  });
+  if (alreadyProcessed) return;
+
+  // Mark this order page as processed
+  chrome.storage.local.set({ gcOrderProcessed: window.location.href });
+
+  const userId = await getGreenLensUserId();
+  if (!userId) {
+    console.log("GreenCart: Not logged in to GreenLens, skipping token credit.");
+    return;
+  }
+
+  const products = extractOrderProducts();
+  if (products.length === 0) {
+    console.log("GreenCart: No products found on order page.");
+    return;
+  }
+
+  let tokensEarned = 0;
+
+  for (const product of products) {
+    // Only send eco products (score > 0 means has certifications)
+    if (product.score === 0) continue;
+
+    try {
+      const res = await fetch("https://greenlens-platform.vercel.app/api/purchase", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          userId,
+          productName: product.name,
+          price: product.price,
+          sustainabilityScore: product.score,
+          externalId: product.asin
+            ? `${product.asin}-${Date.now()}`
+            : `order-${Date.now()}-${Math.random()}`,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        tokensEarned += data.tokensEarned || 0;
+        console.log(`GreenCart: +${data.tokensEarned} tokens for ${product.name}`);
+      }
+    } catch (e) {
+      console.error("GreenCart: Failed to post purchase:", e);
+    }
+  }
+
+  // Show a toast if tokens were earned
+  if (tokensEarned > 0) {
+    showTokenToast(tokensEarned);
+  }
+}
+
+function showTokenToast(tokens) {
+  const toast = document.createElement("div");
+  toast.style.cssText = `
+    position: fixed; bottom: 24px; right: 24px; z-index: 99999;
+    background: linear-gradient(135deg, #0d5c2e, #1a8a47);
+    color: #fff; padding: 14px 20px; border-radius: 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+    box-shadow: 0 4px 24px rgba(13,92,46,0.4);
+    display: flex; align-items: center; gap: 10px;
+    animation: gcSlideIn 0.4s ease;
+  `;
+  toast.innerHTML = `
+    <span style="font-size:24px">🌿</span>
+    <div>
+      <div style="font-size:15px;font-weight:700">+${tokens} Green Tokens Earned!</div>
+      <div style="font-size:11px;opacity:0.8;margin-top:2px">
+        ₹${(tokens * 0.1).toFixed(2)} added to your GreenLens wallet
+      </div>
+    </div>
+  `;
+
+  // Add animation style
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes gcSlideIn {
+      from { transform: translateX(120%); opacity: 0; }
+      to   { transform: translateX(0);    opacity: 1; }
+    }
+  `;
+  document.head.appendChild(style);
+  document.body.appendChild(toast);
+
+  // Auto remove after 6 seconds
+  setTimeout(() => {
+    toast.style.transition = "opacity 0.5s ease";
+    toast.style.opacity = "0";
+    setTimeout(() => toast.remove(), 500);
+  }, 6000);
+}
+
+// ─── END ADDED ────────────────────────────────────────────────────────────────
+
 // ─── MUTATION OBSERVER ────────────────────────────────────────────────────────
 let debounceTimer;
 const observer = new MutationObserver(() => {
@@ -454,6 +570,7 @@ observer.observe(document.body, { childList: true, subtree: true });
 (function init() {
   chrome.storage.local.remove(["gcPageProducts", "gcTimestamp"]);
   const pageType = getPageType();
-  if (pageType === "search") setTimeout(processSearchResults, 1000);
+  if (pageType === "search")  setTimeout(processSearchResults, 1000);
   else if (pageType === "product") setTimeout(processProductPage, 800);
+  else if (pageType === "order")   setTimeout(processOrderPage, 1500);  // ADDED
 })();

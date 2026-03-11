@@ -1,8 +1,9 @@
-// popup.js – GreenCart v3
+// popup.js – GreenCart v4
 
 let allProducts = [];
 let currentSort = "eco-first";
 let showOnlyEco = true;
+let greenLensUser = null; // ADDED: track logged in user
 
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 document.querySelectorAll(".tab").forEach(tab => {
@@ -29,6 +30,57 @@ document.getElementById("ecoToggle").addEventListener("change", (e) => {
   showOnlyEco = e.target.checked;
   renderProducts();
 });
+
+// ─── ADDED: CHECK GREENLENS LOGIN STATE ───────────────────────────────────────
+async function checkGreenLensLogin() {
+  const statusEl = document.getElementById("glLoginStatus");
+  if (!statusEl) return;
+
+  try {
+    const res = await fetch("http://localhost:3000/api/user", {
+      credentials: "include",
+    });
+
+    if (res.ok) {
+      const user = await res.json();
+      greenLensUser = user;
+      statusEl.innerHTML = `
+        <div class="gl-logged-in">
+          <span class="gl-status-dot connected"></span>
+          <div class="gl-status-text">
+            <span class="gl-status-name">${user.name}</span>
+            <span class="gl-status-sub">Tokens earned automatically on eco purchases</span>
+          </div>
+        </div>
+      `;
+    } else {
+      greenLensUser = null;
+      statusEl.innerHTML = `
+        <div class="gl-logged-out">
+          <span class="gl-status-dot disconnected"></span>
+          <div class="gl-status-text">
+            <span class="gl-status-name">Not connected to GreenLens</span>
+            <span class="gl-status-sub">
+              <a href="http://localhost:3000/login" target="_blank" class="gl-login-link">Sign in</a> to earn tokens
+            </span>
+          </div>
+        </div>
+      `;
+    }
+  } catch (e) {
+    greenLensUser = null;
+    statusEl.innerHTML = `
+      <div class="gl-logged-out">
+        <span class="gl-status-dot disconnected"></span>
+        <div class="gl-status-text">
+          <span class="gl-status-name">GreenLens not running</span>
+          <span class="gl-status-sub">Start the platform at localhost:3000</span>
+        </div>
+      </div>
+    `;
+  }
+}
+// ─── END ADDED ────────────────────────────────────────────────────────────────
 
 // ─── LOAD PRODUCTS FROM STORAGE ──────────────────────────────────────────────
 function loadProducts() {
@@ -87,12 +139,10 @@ function renderProducts() {
 
   const sorted = [...products].sort((a, b) => {
     if (currentSort === "eco-first") {
-      // Eco first, then by score
       if (b.isSustainable !== a.isSustainable) return b.isSustainable ? 1 : -1;
       return (b.score || 0) - (a.score || 0);
     }
     if (currentSort === "price-low") {
-      // Eco first, then price low→high within each group
       if (b.isSustainable !== a.isSustainable) return b.isSustainable ? 1 : -1;
       return (a.price || 9999) - (b.price || 9999);
     }
@@ -104,7 +154,6 @@ function renderProducts() {
     return 0;
   });
 
-  // Detect currency symbol from prices (₹ for .in, $ default)
   const currency = detectCurrency();
 
   list.innerHTML = sorted.map(p => `
@@ -181,8 +230,7 @@ function escapeHtml(str) {
 }
 
 function detectCurrency() {
-  // Read from storage or detect from tab URL
-  return "₹"; // Default to ₹ for amazon.in; swap to "$" for amazon.com
+  return "₹";
 }
 
 function formatPrice(price) {
@@ -191,3 +239,4 @@ function formatPrice(price) {
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 loadProducts();
+checkGreenLensLogin(); // ADDED
