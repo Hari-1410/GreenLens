@@ -1,32 +1,28 @@
 {
   "manifest_version": 3,
-  "name": "GreenLens Credit",
+  "name": "GreenCart – Sustainable Shopping",
   "version": "1.0.0",
-  "description": "Turn sustainable shopping into financial credit",
-  "permissions": ["storage", "activeTab"],
-  "host_permissions": [
-    "https://www.amazon.in/*",
-    "https://www.flipkart.com/*",
-    "https://amazon.in/*"
-  ],
+  "description": "Highlights sustainable products on Amazon with green badges, sorts by price, and recommends eco-friendly alternatives.",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["*://*.amazon.com/*", "*://*.amazon.in/*", "*://*.amazon.co.uk/*", "*://*.amazon.co.jp/*", "*://*.amazon.de/*", "*://*.amazon.fr/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
-      "matches": ["https://www.amazon.in/*", "https://www.flipkart.com/*", "https://amazon.in/*"],
+      "matches": ["*://*.amazon.com/*", "*://*.amazon.in/*", "*://*.amazon.co.uk/*", "*://*.amazon.co.jp/*", "*://*.amazon.de/*", "*://*.amazon.fr/*"],
       "js": ["content.js"],
-      "css": ["styles.css"],
+      "css": ["content.css"],
       "run_at": "document_idle"
     }
   ],
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "popup/popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     }
-  },
-  "background": {
-    "service_worker": "background.js"
   },
   "icons": {
     "16": "icons/icon16.png",

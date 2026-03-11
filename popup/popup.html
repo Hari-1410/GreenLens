@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GreenCart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green-dark: #0d5c2e; --green-mid: #1a8a47; --green-light: #2fc76a;
+      --green-pale: #e8f8ed; --green-border: #b8e8c8;
+      --text-primary: #0f1f15; --text-secondary: #4a6b55; --text-muted: #7a9a85;
+      --bg: #f5faf7; --surface: #ffffff; --surface-alt: #f0f7f3;
+      --radius: 12px; --shadow: 0 2px 12px rgba(13,92,46,0.1);
+    }
+    body { width: 390px; min-height: 500px; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); font-size: 14px; }
+
+    /* Header */
+    .header { background: linear-gradient(135deg, #0d5c2e 0%, #1a6b3a 100%); padding: 16px 18px 14px; position: relative; overflow: hidden; }
+    .header::before { content:''; position:absolute; top:-20px; right:-20px; width:100px; height:100px; background:rgba(47,199,106,0.12); border-radius:50%; }
+    .header-top { display:flex; align-items:center; justify-content:space-between; }
+    .logo { display:flex; align-items:center; gap:8px; }
+    .logo-icon { width:32px; height:32px; background:var(--green-light); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+    .logo-text { font-size:18px; font-weight:700; color:#fff; letter-spacing:-0.3px; }
+    .logo-text span { color:var(--green-light); }
+    .status-pill { background:rgba(47,199,106,0.2); border:1px solid rgba(47,199,106,0.4); color:#7eeaaa; font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; }
+    .header-stats { display:flex; gap:16px; margin-top:12px; }
+    .stat { display:flex; flex-direction:column; }
+    .stat-num { font-size:22px; font-weight:700; color:#fff; font-family:'DM Mono',monospace; line-height:1; }
+    .stat-label { font-size:10px; color:rgba(255,255,255,0.6); margin-top:2px; text-transform:uppercase; letter-spacing:0.06em; }
+    .stat-divider { width:1px; background:rgba(255,255,255,0.15); margin:2px 0; }
+
+    /* Tabs */
+    .tabs { display:flex; background:var(--surface); border-bottom:1px solid var(--green-border); }
+    .tab { flex:1; padding:10px 6px; font-size:12px; font-weight:600; color:var(--text-muted); text-align:center; cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; }
+    .tab:hover { color:var(--green-mid); }
+    .tab.active { color:var(--green-dark); border-bottom-color:var(--green-mid); background:var(--green-pale); }
+
+    /* Panels */
+    .panel { display:none; padding:12px; }
+    .panel.active { display:block; }
+
+    /* Controls row */
+    .controls-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:8px; flex-wrap:wrap; }
+
+    /* Sort buttons */
+    .sort-group { display:flex; gap:5px; flex-wrap:wrap; }
+    .sort-btn { padding:4px 9px; border-radius:20px; border:1.5px solid var(--green-border); background:var(--surface); font-size:11px; font-weight:600; color:var(--text-secondary); cursor:pointer; transition:all 0.15s; font-family:'DM Sans',sans-serif; white-space:nowrap; }
+    .sort-btn:hover, .sort-btn.active { background:var(--green-dark); border-color:var(--green-dark); color:#fff; }
+
+    /* Eco toggle */
+    .toggle-wrap { display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; color:var(--text-secondary); white-space:nowrap; }
+    .toggle-wrap input[type="checkbox"] { appearance:none; width:28px; height:16px; background:#ccc; border-radius:20px; cursor:pointer; position:relative; transition:background 0.2s; flex-shrink:0; }
+    .toggle-wrap input[type="checkbox"]:checked { background:var(--green-mid); }
+    .toggle-wrap input[type="checkbox"]::after { content:''; position:absolute; width:12px; height:12px; background:#fff; border-radius:50%; top:2px; left:2px; transition:left 0.2s; }
+    .toggle-wrap input[type="checkbox"]:checked::after { left:14px; }
+
+    /* Product cards */
+    .product-card { background:var(--surface); border:1.5px solid var(--green-border); border-radius:var(--radius); padding:10px 11px; margin-bottom:7px; display:flex; gap:9px; align-items:flex-start; transition:all 0.15s; cursor:pointer; text-decoration:none; color:inherit; }
+    .product-card:hover { border-color:var(--green-mid); box-shadow:var(--shadow); transform:translateY(-1px); }
+    .product-card.non-eco { border-color:#e8e8e8; opacity:0.75; }
+    .product-card.non-eco:hover { border-color:#ccc; opacity:1; }
+    .product-thumb { width:46px; height:46px; border-radius:8px; background:var(--surface-alt); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid var(--green-border); overflow:hidden; }
+    .product-info { flex:1; min-width:0; }
+    .product-name { font-size:12px; font-weight:600; color:var(--text-primary); line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .product-meta { display:flex; align-items:center; gap:7px; margin-top:4px; }
+    .product-price { font-family:'DM Mono',monospace; font-size:13px; font-weight:500; color:var(--green-dark); }
+    .eco-score { display:flex; align-items:center; gap:2px; background:var(--green-pale); border:1px solid var(--green-border); padding:1px 6px; border-radius:10px; font-size:10px; font-weight:700; color:var(--green-dark); }
+    .non-eco-tag { font-size:10px; color:#999; background:#f5f5f5; border:1px solid #e0e0e0; padding:1px 6px; border-radius:10px; font-weight:600; }
+    .cert-tags { display:flex; gap:4px; flex-wrap:wrap; margin-top:3px; }
+    .cert-tag { font-size:9px; font-weight:600; color:var(--green-mid); background:var(--green-pale); padding:1px 5px; border-radius:5px; border:1px solid var(--green-border); }
+
+    /* Empty state */
+    .empty-state { text-align:center; padding:28px 16px; color:var(--text-muted); }
+    .empty-icon { font-size:36px; margin-bottom:8px; }
+    .empty-title { font-size:13px; font-weight:700; color:var(--text-secondary); margin-bottom:5px; }
+    .empty-desc { font-size:11px; line-height:1.6; }
+
+    /* Alternatives */
+    .price-input-row { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+    .price-input-row input { flex:1; padding:7px 11px; border:1.5px solid var(--green-border); border-radius:8px; font-size:13px; font-family:'DM Mono',monospace; background:var(--surface); color:var(--text-primary); outline:none; transition:border-color 0.15s; }
+    .price-input-row input:focus { border-color:var(--green-mid); }
+    .price-input-row input::placeholder { color:var(--text-muted); }
+    .find-btn { padding:7px 14px; background:var(--green-dark); color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:background 0.15s; }
+    .find-btn:hover { background:var(--green-mid); }
+
+    /* About */
+    .about-section { background:var(--surface); border:1.5px solid var(--green-border); border-radius:var(--radius); padding:13px; margin-bottom:9px; }
+    .about-section h3 { font-size:11px; font-weight:700; color:var(--green-dark); margin-bottom:7px; text-transform:uppercase; letter-spacing:0.06em; }
+    .about-section p { font-size:12px; color:var(--text-secondary); line-height:1.6; }
+    .api-sources { display:flex; flex-direction:column; gap:5px; }
+    .api-source { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--text-secondary); }
+    .api-dot { width:7px; height:7px; border-radius:50%; background:var(--green-light); flex-shrink:0; }
+
+    /* Loading */
+    .loading { text-align:center; padding:20px; color:var(--text-muted); font-size:12px; }
+    .spinner { width:22px; height:22px; border:2px solid var(--green-border); border-top-color:var(--green-mid); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 8px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .section-title { font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:8px; }
+
+    /* On-page sort hint banner */
+    .page-sort-hint { background: linear-gradient(135deg, #0d5c2e, #1a8a47); color:#fff; border-radius:10px; padding:10px 13px; margin-bottom:10px; font-size:11px; line-height:1.5; }
+    .page-sort-hint strong { display:block; font-size:12px; margin-bottom:3px; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">
+        <div class="logo-icon">🌿</div>
+        <div class="logo-text">Green<span>Cart</span></div>
+      </div>
+      <div class="status-pill" id="statusPill">Scanning…</div>
+    </div>
+    <div class="header-stats">
+      <div class="stat"><div class="stat-num" id="totalCount">–</div><div class="stat-label">Products</div></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><div class="stat-num" id="ecoCount">–</div><div class="stat-label">Eco</div></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><div class="stat-num" id="avgScore">–</div><div class="stat-label">Avg Score</div></div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" data-tab="sort">🌿 Products</div>
+    <div class="tab" data-tab="alternatives">🔄 Alternatives</div>
+    <div class="tab" data-tab="about">ℹ️ About</div>
+  </div>
+
+  <!-- PANEL: Products + Sort -->
+  <div class="panel active" id="panel-sort">
+
+    <div class="page-sort-hint">
+      <strong>📄 On-page sorting is live!</strong>
+      A GreenCart toolbar appears on the Amazon search page — eco products automatically float to the top.
+    </div>
+
+    <div class="controls-row">
+      <div class="sort-group">
+        <button class="sort-btn active" data-sort="eco-first">🌿 Eco First</button>
+        <button class="sort-btn" data-sort="price-low">↑ Price</button>
+        <button class="sort-btn" data-sort="price-high">↓ Price</button>
+        <button class="sort-btn" data-sort="score">★ Score</button>
+      </div>
+      <label class="toggle-wrap">
+        <input type="checkbox" id="ecoToggle" checked />
+        Eco only
+      </label>
+    </div>
+
+    <div id="productList">
+      <div class="loading"><div class="spinner"></div>Scanning page for eco products…</div>
+    </div>
+  </div>
+
+  <!-- PANEL: Alternatives -->
+  <div class="panel" id="panel-alternatives">
+    <div class="section-title">Find Sustainable Alternatives</div>
+    <div class="price-input-row">
+      <input type="number" id="altPrice" placeholder="Your budget (e.g. 500)" min="1" step="1" />
+      <button class="find-btn" id="findAltBtn">Find</button>
+    </div>
+    <div id="altList">
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">Enter a budget</div>
+        <div class="empty-desc">We'll find sustainable alternatives within ±20% of your price.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL: About -->
+  <div class="panel" id="panel-about">
+    <div class="about-section">
+      <h3>On-page sorting</h3>
+      <p>A sort toolbar is injected directly on Amazon search results pages. Eco products automatically bubble to the top when you open a search page.</p>
+    </div>
+    <div class="about-section">
+      <h3>How sustainability is detected</h3>
+      <p>Products are checked against sustainability keywords and certifications. Connect a real API (Open Food Facts, GoodOnYou) in <code>background.js</code> for live data.</p>
+    </div>
+    <div class="about-section">
+      <h3>Data sources</h3>
+      <div class="api-sources">
+        <div class="api-source"><div class="api-dot"></div>Open Food Facts – food eco-scores</div>
+        <div class="api-source"><div class="api-dot"></div>Keyword & certification matching</div>
+        <div class="api-source"><div class="api-dot"></div>Custom sustainability database</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
